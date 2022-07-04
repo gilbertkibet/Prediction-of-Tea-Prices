@@ -1,0 +1,98 @@
+---
+title: "Time Series Analysis of Tea Prices"
+author: "Group 16"
+date: '2022-07-02'
+output: html_document
+---
+setwd("C:/Users/user/Desktop/project")
+getwd
+#loading libraries
+library(lubridate)
+library(ggplot2)
+library(tseries)
+library(timeSeries)
+library(forecast) 
+library(TSstudio)
+library(imputeTS) 
+library(FitARMA)
+#reading the data from our working directory
+TeaData<-read.csv("TeaFinal.csv",TRUE,",")
+class(TeaData)
+#convert a data frame into an R time series object
+TeaPrices <- ts(TeaData, frequency=12, start=c(2011,1))
+TeaPrices
+#plotting for trend
+
+
+plot.ts((TeaPrices),col="blue")
+#checking for stationarity
+adf.test(TeaPrices[,1])
+#differncing
+DifferencedTeaPrices<-diff(TeaPrices[,1],differences=1)
+DifferencedTeaPrices
+
+# Testing for stationarity of the differenced series
+adf.test(DifferencedTeaPrices)
+
+# Plotting the ACF of the differenced data
+acf(DifferencedTeaPrices)
+
+# Plotting the PACF of the differenced data
+pacf(DifferencedTeaPrices)
+#fitting model
+fit10<-Arima(TeaPrices[,1],order=c(2,1,4))
+fit10
+
+# Extracting residuals of the fitted model for testing the adequacy
+Residuals<-residuals(fit10)
+Residuals
+
+# plotting Histogram of Residuals with Density Curve
+hist(Residuals,freq=FALSE,col="lightblue",breaks=10,xlim=c(-1,1),ylim=c
+     (0,5))
+lines(density(Residuals),lwd=2, col="red")
+
+acf(Residuals)
+# Testing for adequacy of our fitted ARIMA model to confirm
+Box.test(Residuals,type = "Ljung-Box")
+# 5 years forecast using the model
+our_forecast<-forecast(fit10,h=60)
+our_forecast
+
+# Plotting the forecast
+
+autoplot(our_forecast)
+
+
+# Gettng our sample forecast values (2022) using our model
+
+our_forecast_sample<-forecast(fit10,h=12)
+our_forecast_sample
+
+# Checking the names of the Variables of our sample forecast dataset
+names(our_forecast_sample
+
+# Extracting the upper forecast values of our sample forecast values (95% CI)
+Ft<-as.matrix(our_forecast_sample$upper[,2])
+Ft
+
+sample2021<-read.csv("Book1.csv",TRUE,",")
+class(sample2021)
+A1<-as.matrix(sample2021[,2],ncol=1)
+A1
+
+
+
+library(dplyr)
+sample2<-rename(sample2021,A1=Prices)
+sample2
+
+
+cbind(sample2,Ft)
+
+library(ggplot2)
+ggplot(plot,aes(x=Date,y=Prices,group=1))+geom_line(aes(y=A1),col="red")+geom_line(aes(y=Ft),col="blue")+scale_x_discrete(guide=guide_axis(check.overlap=TRUE))
+
+
+
+
